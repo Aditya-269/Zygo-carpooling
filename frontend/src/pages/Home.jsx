@@ -13,6 +13,7 @@ import { useContext } from 'react';
 import { UserDataContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import LiveTracking from '../components/LiveTracking';
+import NavbarWithMenu from '../components/Navbar'
 
 const Home = () => {
     const [ pickup, setPickup ] = useState('')
@@ -45,6 +46,8 @@ const Home = () => {
     }, [ user ])
 
     socket.on('ride-confirmed', ride => {
+
+
         setVehicleFound(false)
         setWaitingForDriver(true)
         setRide(ride)
@@ -53,8 +56,9 @@ const Home = () => {
     socket.on('ride-started', ride => {
         console.log("ride")
         setWaitingForDriver(false)
-        navigate('/riding', { state: { ride } })
+        navigate('/riding', { state: { ride } }) // Updated navigate to include ride data
     })
+
 
     const handlePickupChange = async (e) => {
         setPickup(e.target.value)
@@ -64,6 +68,7 @@ const Home = () => {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
+
             })
             setPickupSuggestions(response.data)
         } catch {
@@ -95,6 +100,7 @@ const Home = () => {
             gsap.to(panelRef.current, {
                 height: '70%',
                 padding: 24
+                // opacity:1
             })
             gsap.to(panelCloseRef.current, {
                 opacity: 1
@@ -103,12 +109,14 @@ const Home = () => {
             gsap.to(panelRef.current, {
                 height: '0%',
                 padding: 0
+                // opacity:0
             })
             gsap.to(panelCloseRef.current, {
                 opacity: 0
             })
         }
     }, [ panelOpen ])
+
 
     useGSAP(function () {
         if (vehiclePanel) {
@@ -158,6 +166,7 @@ const Home = () => {
         }
     }, [ waitingForDriver ])
 
+
     async function findTrip() {
         setVehiclePanel(true)
         setPanelOpen(false)
@@ -169,7 +178,10 @@ const Home = () => {
             }
         })
 
+
         setFare(response.data)
+
+
     }
 
     async function createRide() {
@@ -182,22 +194,27 @@ const Home = () => {
                 Authorization: `Bearer ${localStorage.getItem('token')}`
             }
         })
+
+
     }
 
     return (
+<>
+         <NavbarWithMenu />
         <div className='h-screen relative overflow-hidden'>
             <img className='w-16 absolute left-5 top-5' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
             <div className='h-screen w-screen'>
+    
                 <LiveTracking />
             </div>
-            <div className='flex flex-col justify-end h-screen absolute top-0 w-full'>
+            <div className=' flex flex-col justify-end h-screen absolute top-0 w-full'>
                 <div className='h-[30%] p-6 bg-white relative'>
                     <h5 ref={panelCloseRef} onClick={() => {
                         setPanelOpen(false)
-                    }} className='absolute opacity-0 right-6 top-6 text-2xl cursor-pointer hover:bg-gray-100 p-2 rounded-full transition-all'>
+                    }} className='absolute opacity-0 right-6 top-6 text-2xl'>
                         <i className="ri-arrow-down-wide-line"></i>
                     </h5>
-                    <h4 className='text-2xl font-semibold mb-4'>Find a trip</h4>
+                    <h4 className='text-2xl font-semibold'>Find a trip</h4>
                     <form className='relative py-3' onSubmit={(e) => {
                         submitHandler(e)
                     }}>
@@ -209,7 +226,7 @@ const Home = () => {
                             }}
                             value={pickup}
                             onChange={handlePickupChange}
-                            className='bg-[#eee] px-12 py-3 text-lg rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all'
+                            className='bg-[#eee] px-12 py-2 text-lg rounded-lg w-full'
                             type="text"
                             placeholder='Add a pick-up location'
                         />
@@ -220,13 +237,13 @@ const Home = () => {
                             }}
                             value={destination}
                             onChange={handleDestinationChange}
-                            className='bg-[#eee] px-12 py-3 text-lg rounded-lg w-full mt-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all'
+                            className='bg-[#eee] px-12 py-2 text-lg rounded-lg w-full  mt-3'
                             type="text"
                             placeholder='Enter your destination' />
                     </form>
                     <button
                         onClick={findTrip}
-                        className='bg-black text-white px-4 py-3 rounded-lg mt-4 w-full hover:bg-gray-800 transition-all'>
+                        className='bg-black text-white px-4 py-2 rounded-lg mt-3 w-full'>
                         Find Trip
                     </button>
                 </div>
@@ -245,7 +262,7 @@ const Home = () => {
                 <VehiclePanel
                     selectVehicle={setVehicleType}
                     fare={fare} setConfirmRidePanel={setConfirmRidePanel} setVehiclePanel={setVehiclePanel} />
-                </div>
+            </div>
             <div ref={confirmRidePanelRef} className='fixed w-full z-10 bottom-0 translate-y-full bg-white px-3 py-6 pt-12'>
                 <ConfirmRide
                     createRide={createRide}
@@ -253,6 +270,7 @@ const Home = () => {
                     destination={destination}
                     fare={fare}
                     vehicleType={vehicleType}
+
                     setConfirmRidePanel={setConfirmRidePanel} setVehicleFound={setVehicleFound} />
             </div>
             <div ref={vehicleFoundRef} className='fixed w-full z-10 bottom-0 translate-y-full bg-white px-3 py-6 pt-12'>
@@ -264,14 +282,16 @@ const Home = () => {
                     vehicleType={vehicleType}
                     setVehicleFound={setVehicleFound} />
             </div>
-            <div ref={waitingForDriverRef} className='fixed w-full z-10 bottom-0 bg-white px-3 py-6 pt-12'>
+            <div ref={waitingForDriverRef} className='fixed w-full  z-10 bottom-0  bg-white px-3 py-6 pt-12'>
                 <WaitingForDriver
                     ride={ride}
                     setVehicleFound={setVehicleFound}
                     setWaitingForDriver={setWaitingForDriver}
                     waitingForDriver={waitingForDriver} />
             </div>
+             
         </div>
+        </>
     )
 }
 
